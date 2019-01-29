@@ -13,10 +13,34 @@ osInfo[/etc/debian_version]=apt-get
 install() {
   clear
   echo 'What would you like to install?'
+  echo '[1] - Nginx'
+  echo '[2] - Apache'
+  echo '[3] - PHP'
+  echo '[4] - MySQL'
+  echo '[5] - phpMyAdmin'
+  echo '[6] - MongoDB'
+  echo "[7] - certbot (Let's Encrypt)"
   echo '[0] - Cancel'
-  printf '\nSelect any number shown above and hit return\n>'
-
+  printf '\nSelect any number shown above and hit return\n> '
   read install
+
+  update
+
+  case "$install" in
+    0) ;;
+
+    1) yum -y install nginx
+      openFirewall
+      ;;
+
+    2) yum -y install httpd
+      openFirewall
+      ;;
+
+    *) printf 'Please enter a valid option from above!\nPress any key to continue...'
+      read
+      ;;
+  esac
 }
 
 configure() {
@@ -24,6 +48,26 @@ configure() {
   echo 'What would you like to configure?'
 
   read configure
+}
+
+update() {
+  printf '\nWould you like top update all packages first?\n[y/n]> '
+  read updateYN
+
+  if [[ "$updateYN" == 'y' ]]; then
+    yum -y update
+  fi
+}
+
+openFirewall() {
+  printf '\nWould you like top open port 80 & 443 of your firewall?\n[y/n]> '
+  read firewallYN
+
+  if [[ "$firewallYN" == 'y' ]]; then
+    yum -y install firewall-cmd
+    firewall-cmd --permanent --add-port=80/tcp
+    firewall-cmd --permanent --add-port=443/tcp
+  fi
 }
 
 # Checking if OS uses yum package manager
@@ -39,9 +83,10 @@ do
           echo 'What would you like to do?'
           echo '[1] - Perform installation'
           echo '[2] - Perform configuration'
-          echo '[3] - Perform update'
+          echo '[3] - Update all packages'
+          echo '[4] - Perform uninstallation'
           echo '[0] - Exit'
-          printf '\nSelect any number shown above and hit return\n>'
+          printf '\nSelect any number shown above and hit return\n> '
 
           read action
 
@@ -53,6 +98,12 @@ do
               ;;
 
             2) configure
+              ;;
+
+            3) yum -y update
+              ;;
+
+            4) uninstall
               ;;
 
             *) printf 'Please enter a valid option from above!\nPress any key to continue...'
